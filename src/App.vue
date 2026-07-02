@@ -63,6 +63,7 @@ const engineItems = ['文档解析', '规则抽取', '知识复用', '内容生�
 const activeSection = ref<SectionKey>('hero');
 const showContact = ref(false);
 const sectionRefs = new Map<SectionKey, HTMLElement>();
+let sectionObserver: IntersectionObserver | null = null;
 
 const tenderLoginUrl = import.meta.env.VITE_TENDER_LOGIN_URL || '';
 const bidLoginUrl = import.meta.env.VITE_BID_LOGIN_URL || '';
@@ -95,7 +96,7 @@ function closeContact() {
 }
 
 onMounted(() => {
-  const observer = new IntersectionObserver(
+  sectionObserver = new IntersectionObserver(
     entries => {
       const visible = entries
         .filter(entry => entry.isIntersecting)
@@ -109,11 +110,12 @@ onMounted(() => {
     { threshold: [0.35, 0.55, 0.75] }
   );
 
-  sectionRefs.forEach(element => observer.observe(element));
+  sectionRefs.forEach(element => sectionObserver?.observe(element));
+});
 
-  onUnmounted(() => {
-    observer.disconnect();
-  });
+onUnmounted(() => {
+  sectionObserver?.disconnect();
+  sectionObserver = null;
 });
 </script>
 
