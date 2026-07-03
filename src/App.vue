@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import LiquidGlassButton from './components/LiquidGlassButton.vue';
+
+gsap.registerPlugin(ScrollTrigger);
 
 type SectionKey =
   | 'hero'
@@ -302,6 +306,7 @@ const modalCopies: Record<ModalKind, ModalCopy> = {
 };
 
 const engineItems = ['文档解析', '规则抽取', '知识复用', '内容生成', '风险识别', '评分辅助'];
+const landingShell = ref<HTMLElement | null>(null);
 const activeSection = ref<SectionKey>('hero');
 const modalKind = ref<ModalKind>('demo');
 const showModal = ref(false);
@@ -322,6 +327,7 @@ const feedbackForm = ref({
 });
 const sectionRefs = new Map<SectionKey, HTMLElement>();
 let sectionObserver: IntersectionObserver | null = null;
+let painMotionMedia: ReturnType<typeof gsap.matchMedia> | null = null;
 
 const tenderLoginUrl = import.meta.env.VITE_TENDER_LOGIN_URL || 'http://221.226.15.10:48089/tenderWriting/home';
 const bidLoginUrl = import.meta.env.VITE_BID_LOGIN_URL || 'http://36.155.142.138:38089/bidWriting/home';
@@ -364,7 +370,140 @@ function submitModal() {
   submittedModal.value = modalKind.value;
 }
 
-onMounted(() => {
+function setupPainScrollytelling() {
+  const shell = landingShell.value;
+  const painSection = sectionRefs.get('pain');
+
+  if (!shell || !painSection) {
+    return;
+  }
+
+  painMotionMedia?.revert();
+  painMotionMedia = gsap.matchMedia();
+
+  painMotionMedia.add('(min-width: 1121px) and (prefers-reduced-motion: no-preference)', () => {
+    const heroSection = sectionRefs.get('hero');
+    const cards = gsap.utils.toArray<HTMLElement>('.pain-card', painSection);
+    const copyItems = gsap.utils.toArray<HTMLElement>('.pain-copy > *', painSection);
+    const cardContent = cards.flatMap(card => gsap.utils.toArray<HTMLElement>('.pain-card-copy', card));
+    const heroTargets = heroSection
+      ? gsap.utils.toArray<HTMLElement>('.gallery-copy, .hero-data-strip', heroSection)
+      : [];
+
+    if (!cards.length || !copyItems.length) {
+      return;
+    }
+
+    const cardLayout = [
+      { x: -126, y: -152, rotation: -5.8, scale: 1, zIndex: 1 },
+      { x: 52, y: -44, rotation: 3.4, scale: 0.985, zIndex: 2 },
+      { x: -72, y: 62, rotation: -2.2, scale: 0.97, zIndex: 3 },
+      { x: 98, y: 164, rotation: 4.8, scale: 0.95, zIndex: 4 }
+    ];
+
+    if (heroTargets.length) {
+      gsap.to(heroTargets, {
+        autoAlpha: 0.42,
+        y: -86,
+        filter: 'blur(10px)',
+        ease: 'none',
+        scrollTrigger: {
+          id: 'hero-to-pain-recede',
+          trigger: painSection,
+          scroller: shell,
+          start: 'top bottom',
+          end: 'top top',
+          scrub: 0.7,
+          invalidateOnRefresh: true,
+          refreshPriority: 0
+        }
+      });
+    }
+
+    gsap.set(copyItems, {
+      autoAlpha: 0.76,
+      y: 12,
+      filter: 'blur(1.5px)'
+    });
+    gsap.set(cards, {
+      autoAlpha: 0.5,
+      xPercent: -50,
+      yPercent: -50,
+      x: (index: number) => [-18, -6, 7, 19][index] ?? 0,
+      y: (index: number) => -34 + index * 12,
+      z: (index: number) => -180 + index * 28,
+      zIndex: (index: number) => index + 1,
+      rotationX: -74,
+      rotation: (index: number) => [-8, -3, 2, 7][index] ?? 0,
+      scale: 0.9,
+      transformOrigin: '50% 0%',
+      transformStyle: 'preserve-3d',
+      force3D: true
+    });
+    gsap.set(cardContent, {
+      autoAlpha: 0.12,
+      y: 14,
+      filter: 'blur(6px)'
+    });
+
+    const timeline = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        id: 'pain-card-stack-scrolly',
+        trigger: painSection,
+        scroller: shell,
+        start: 'top top',
+        end: () => `+=${Math.max(shell.clientHeight * 1.65, 1160)}`,
+        pin: true,
+        scrub: 0.9,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        refreshPriority: 1,
+        onEnter: () => {
+          activeSection.value = 'pain';
+        },
+        onEnterBack: () => {
+          activeSection.value = 'pain';
+        }
+      }
+    });
+
+    timeline
+      .to(copyItems, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.18, stagger: 0.035 }, 0)
+      .to(cards, { autoAlpha: 1, duration: 0.08, stagger: 0.018 }, 0)
+      .to(cards, { rotationX: -22, y: (index: number) => -22 + index * 15, z: -46, scale: 0.94, duration: 0.14, stagger: 0.02 }, 0.04);
+
+    cards.forEach((card, index) => {
+      const layout = cardLayout[index] ?? cardLayout[cardLayout.length - 1];
+      const start = 0.24 + index * 0.115;
+      const content = gsap.utils.toArray<HTMLElement>('.pain-card-copy', card);
+
+      timeline
+        .to(
+          card,
+          {
+            x: layout.x,
+            y: layout.y,
+            z: 0,
+            zIndex: layout.zIndex,
+            rotationX: 0,
+            rotation: layout.rotation,
+            scale: layout.scale,
+            duration: 0.28
+          },
+          start
+        )
+        .to(content, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.16, stagger: 0.018 }, start + 0.075);
+    });
+
+    timeline.to(cards, { y: (index: number) => (cardLayout[index] ?? cardLayout[0]).y + 12, duration: 0.12 }, 0.83);
+
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+    void document.fonts.ready.then(() => ScrollTrigger.refresh());
+  });
+}
+
+onMounted(async () => {
   sectionObserver = new IntersectionObserver(
     entries => {
       const visible = entries
@@ -380,16 +519,21 @@ onMounted(() => {
   );
 
   sectionRefs.forEach(element => sectionObserver?.observe(element));
+
+  await nextTick();
+  setupPainScrollytelling();
 });
 
 onUnmounted(() => {
   sectionObserver?.disconnect();
   sectionObserver = null;
+  painMotionMedia?.revert();
+  painMotionMedia = null;
 });
 </script>
 
 <template>
-  <main class="landing-shell" :data-active-section="activeSection">
+  <main ref="landingShell" class="landing-shell" :data-active-section="activeSection">
     <div class="ambient-layer" aria-hidden="true">
       <span class="ambient-surface" />
       <span class="ambient-sheen" />
@@ -496,17 +640,18 @@ onUnmounted(() => {
       :class="{ 'is-active': isActive('pain') }"
       data-section="pain"
     >
-      <div class="section-copy reveal-item">
+      <div class="section-copy pain-copy">
         <p class="eyebrow">Why BidFlow</p>
         <h2>招投标团队真正头疼的，不只是写标书</h2>
         <p>流程长、资料散、风险隐蔽、审查繁重。智标宝把这些重复劳动和关键风险提前收束到一套 AI 作业链里。</p>
       </div>
 
-      <div class="pain-grid">
-        <article v-for="point in painPoints" :key="point.title" class="insight-card reveal-item">
-          <span>{{ point.label }}</span>
-          <h3>{{ point.title }}</h3>
-          <p>{{ point.description }}</p>
+      <div class="pain-card-stack" aria-label="客户痛点">
+        <article v-for="(point, index) in painPoints" :key="point.title" class="insight-card pain-card">
+          <span class="pain-card-copy">{{ point.label }}</span>
+          <h3 class="pain-card-copy">{{ point.title }}</h3>
+          <p class="pain-card-copy">{{ point.description }}</p>
+          <b aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</b>
         </article>
       </div>
     </section>
