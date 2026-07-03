@@ -1,0 +1,24 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="markFill" x1="11" y1="7" x2="55" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#715BFF"/>
+      <stop offset="0.5" stop-color="#7D4DFF"/>
+      <stop offset="1" stop-color="#9B60FF"/>
+    </linearGradient>
+    <linearGradient id="markEdge" x1="12" y1="8" x2="52" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B9ACFF"/>
+      <stop offset="1" stop-color="#5E44DF"/>
+    </linearGradient>
+    <linearGradient id="glyph" x1="22" y1="14" x2="42" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.58" stop-color="#F4F0FF"/>
+      <stop offset="1" stop-color="#DCD6FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="6.5" y="6.5" width="51" height="51" rx="13.5" fill="url(#markFill)" stroke="url(#markEdge)"/>
+  <path d="M16 18.5C16 17.12 17.12 16 18.5 16H45.5C46.88 16 48 17.12 48 18.5V21.5C48 22.88 46.88 24 45.5 24H36V45.5C36 46.88 34.88 48 33.5 48H30.5C29.12 48 28 46.88 28 45.5V24H18.5C17.12 24 16 22.88 16 21.5V18.5Z" fill="url(#glyph)"/>
+  <path d="M24 34H18.5C17.12 34 16 35.12 16 36.5V45.5C16 46.88 17.12 48 18.5 48H26.2C27.35 48 28 47.08 28 46V42.5C28 41.67 27.33 41 26.5 41H23.5C22.67 41 22 41.67 22 42.5V43H21V39H24C25.1 39 26 38.1 26 37V36C26 34.9 25.1 34 24 34Z" fill="white" opacity="0.92"/>
+  <path d="M40 34H45.5C46.88 34 48 35.12 48 36.5V45.5C48 46.88 46.88 48 45.5 48H37.8C36.65 48 36 47.08 36 46V42.5C36 41.67 36.67 41 37.5 41H40.5C41.33 41 42 41.67 42 42.5V43H43V39H40C38.9 39 38 38.1 38 37V36C38 34.9 38.9 34 40 34Z" fill="white" opacity="0.92"/>
+  <path d="M14 27.5C14 26.12 15.12 25 16.5 25H19.5C20.88 25 22 26.12 22 27.5V30.5C22 31.88 20.88 33 19.5 33H16.5C15.12 33 14 31.88 14 30.5V27.5Z" fill="white" opacity="0.78"/>
+  <path d="M42 19H46" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity="0.58"/>
+</svg>
