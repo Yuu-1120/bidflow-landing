@@ -328,6 +328,8 @@ const feedbackForm = ref({
 const sectionRefs = new Map<SectionKey, HTMLElement>();
 let sectionObserver: IntersectionObserver | null = null;
 let painMotionMedia: ReturnType<typeof gsap.matchMedia> | null = null;
+let storyScrollFrame = 0;
+let cleanupStoryCanvas: (() => void) | null = null;
 
 const tenderLoginUrl = import.meta.env.VITE_TENDER_LOGIN_URL || 'http://221.226.15.10:48089/tenderWriting/home';
 const bidLoginUrl = import.meta.env.VITE_BID_LOGIN_URL || 'http://36.155.142.138:38089/bidWriting/home';
@@ -368,6 +370,90 @@ function closeModal() {
 
 function submitModal() {
   submittedModal.value = modalKind.value;
+}
+
+function setupStoryCanvas() {
+  const shell = landingShell.value;
+
+  if (!shell) {
+    return;
+  }
+
+  const readScrollState = () => {
+    const shellMaxScroll = shell.scrollHeight - shell.clientHeight;
+
+    if (shellMaxScroll > 4) {
+      return {
+        maxScroll: Math.max(shellMaxScroll, 1),
+        scrollTop: shell.scrollTop,
+        viewportHeight: shell.clientHeight
+      };
+    }
+
+    const scrollingElement = document.scrollingElement ?? document.documentElement;
+    const scrollTop = window.scrollY || scrollingElement.scrollTop;
+
+    return {
+      maxScroll: Math.max(scrollingElement.scrollHeight - window.innerHeight, 1),
+      scrollTop,
+      viewportHeight: window.innerHeight
+    };
+  };
+
+  const updateStoryCanvas = () => {
+    storyScrollFrame = 0;
+
+    const { maxScroll, scrollTop, viewportHeight } = readScrollState();
+    const rawProgress = scrollTop / maxScroll;
+    const storyProgress = Math.min(Math.max((scrollTop - viewportHeight * 0.34) / maxScroll, 0), 1);
+    const surfaceX = -6 + storyProgress * 12;
+    const surfaceY = 6 + storyProgress * 9;
+    const sheenX = 10 - storyProgress * 18;
+    const sheenY = -8 + storyProgress * 12;
+    const paperY = -storyProgress * 340;
+    const gridY = -storyProgress * 210;
+
+    shell.style.setProperty('--story-progress', storyProgress.toFixed(3));
+    shell.style.setProperty('--story-depth-opacity', (0.34 + storyProgress * 0.18).toFixed(3));
+    shell.style.setProperty('--story-paper-opacity', (0.18 + storyProgress * 0.44).toFixed(3));
+    shell.style.setProperty('--story-thread-opacity', (0.1 + storyProgress * 0.36).toFixed(3));
+    shell.style.setProperty(
+      '--story-surface-transform',
+      `translate3d(${surfaceX.toFixed(2)}vw, ${surfaceY.toFixed(2)}vh, 0) rotate(${(storyProgress * 8 - 2).toFixed(2)}deg) scale(${(1 + storyProgress * 0.045).toFixed(3)})`
+    );
+    shell.style.setProperty(
+      '--story-sheen-transform',
+      `translate3d(${sheenX.toFixed(2)}vw, ${sheenY.toFixed(2)}vh, 0) rotate(${(-4 - storyProgress * 3).toFixed(2)}deg)`
+    );
+    shell.style.setProperty('--story-paper-transform', `translate3d(${(-storyProgress * 7).toFixed(2)}vw, ${paperY.toFixed(1)}px, 0) rotate(${(storyProgress * 2.5).toFixed(2)}deg)`);
+    shell.style.setProperty('--story-thread-transform', `translate3d(${(storyProgress * 5).toFixed(2)}vw, ${(-storyProgress * 260).toFixed(1)}px, 0)`);
+    shell.style.setProperty('--story-grid-transform', `translate3d(0, ${gridY.toFixed(1)}px, 0)`);
+    shell.style.setProperty('--hero-blend-opacity', String(Math.min(Math.max(rawProgress * 2.8, 0), 1).toFixed(3)));
+  };
+
+  const requestStoryUpdate = () => {
+    if (storyScrollFrame) {
+      return;
+    }
+
+    storyScrollFrame = requestAnimationFrame(updateStoryCanvas);
+  };
+
+  updateStoryCanvas();
+  shell.addEventListener('scroll', requestStoryUpdate, { passive: true });
+  window.addEventListener('scroll', requestStoryUpdate, { passive: true });
+  window.addEventListener('resize', requestStoryUpdate);
+
+  cleanupStoryCanvas = () => {
+    shell.removeEventListener('scroll', requestStoryUpdate);
+    window.removeEventListener('scroll', requestStoryUpdate);
+    window.removeEventListener('resize', requestStoryUpdate);
+
+    if (storyScrollFrame) {
+      cancelAnimationFrame(storyScrollFrame);
+      storyScrollFrame = 0;
+    }
+  };
 }
 
 function setupPainScrollytelling() {
@@ -426,16 +512,16 @@ function setupPainScrollytelling() {
       filter: 'blur(1.5px)'
     });
     gsap.set(cards, {
-      autoAlpha: 0.5,
+      autoAlpha: 0.66,
       xPercent: -50,
       yPercent: -50,
-      x: (index: number) => [-18, -6, 7, 19][index] ?? 0,
-      y: (index: number) => -34 + index * 12,
-      z: (index: number) => -180 + index * 28,
+      x: (index: number) => [-92, -42, 12, 66][index] ?? 0,
+      y: (index: number) => -48 + index * 21,
+      z: (index: number) => -120 + index * 34,
       zIndex: (index: number) => index + 1,
-      rotationX: -74,
-      rotation: (index: number) => [-8, -3, 2, 7][index] ?? 0,
-      scale: 0.9,
+      rotationX: -54,
+      rotation: (index: number) => [-7, -2.8, 1.8, 6.2][index] ?? 0,
+      scale: (index: number) => 0.9 + index * 0.012,
       transformOrigin: '50% 0%',
       transformStyle: 'preserve-3d',
       force3D: true
@@ -521,6 +607,7 @@ onMounted(async () => {
   sectionRefs.forEach(element => sectionObserver?.observe(element));
 
   await nextTick();
+  setupStoryCanvas();
   setupPainScrollytelling();
 });
 
@@ -529,6 +616,8 @@ onUnmounted(() => {
   sectionObserver = null;
   painMotionMedia?.revert();
   painMotionMedia = null;
+  cleanupStoryCanvas?.();
+  cleanupStoryCanvas = null;
 });
 </script>
 
@@ -538,6 +627,9 @@ onUnmounted(() => {
       <span class="ambient-surface" />
       <span class="ambient-sheen" />
       <span class="ambient-grid" />
+      <span class="story-paper-field" />
+      <span class="story-thread-field" />
+      <span class="story-depth-field" />
     </div>
 
     <header class="site-nav">
