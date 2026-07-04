@@ -2,9 +2,10 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import LiquidGlassButton from './components/LiquidGlassButton.vue';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin);
 
 type SectionKey =
   | 'hero'
@@ -328,6 +329,7 @@ const feedbackForm = ref({
 const sectionRefs = new Map<SectionKey, HTMLElement>();
 let sectionObserver: IntersectionObserver | null = null;
 let painMotionMedia: ReturnType<typeof gsap.matchMedia> | null = null;
+let storyMotionMedia: ReturnType<typeof gsap.matchMedia> | null = null;
 let storyScrollFrame = 0;
 let cleanupStoryCanvas: (() => void) | null = null;
 
@@ -370,6 +372,61 @@ function closeModal() {
 
 function submitModal() {
   submittedModal.value = modalKind.value;
+}
+
+function restoreTextOnCleanup(element: HTMLElement | null, callbacks: Array<() => void>) {
+  if (!element) {
+    return;
+  }
+
+  const originalText = element.textContent ?? '';
+  callbacks.push(() => {
+    element.textContent = originalText;
+  });
+}
+
+function addCountTextTween(
+  timeline: gsap.core.Timeline,
+  element: HTMLElement | null,
+  finalText: string,
+  position: gsap.Position,
+  duration = 0.32
+) {
+  if (!element) {
+    return;
+  }
+
+  const progressState = { value: 0 };
+  const rangeMatch = finalText.match(/^(\d+)%-(\d+)%$/);
+  const numericMatch = finalText.match(/^(\d+)(.*)$/);
+
+  const render = () => {
+    if (rangeMatch) {
+      const start = Math.round(Number(rangeMatch[1]) * progressState.value);
+      const end = Math.round(Number(rangeMatch[2]) * progressState.value);
+      element.textContent = `${start}%-${end}%`;
+      return;
+    }
+
+    if (numericMatch) {
+      const value = Math.round(Number(numericMatch[1]) * progressState.value);
+      element.textContent = `${value}${numericMatch[2]}`;
+      return;
+    }
+
+    element.textContent = finalText;
+  };
+
+  render();
+  timeline.to(progressState, {
+    value: 1,
+    duration,
+    ease: 'power2.out',
+    onUpdate: render,
+    onComplete: () => {
+      element.textContent = finalText;
+    }
+  }, position);
 }
 
 function setupStoryCanvas() {
@@ -454,6 +511,407 @@ function setupStoryCanvas() {
       storyScrollFrame = 0;
     }
   };
+}
+
+function setupHeroIntro(restoreCallbacks: Array<() => void>) {
+  const heroSection = sectionRefs.get('hero');
+
+  if (!heroSection) {
+    return;
+  }
+
+  const eyebrow = heroSection.querySelector<HTMLElement>('.gallery-copy .eyebrow');
+  const titleLines = gsap.utils.toArray<HTMLElement>('.hero-title-line', heroSection);
+  const kicker = heroSection.querySelector<HTMLElement>('.hero-title-kicker');
+  const description = heroSection.querySelector<HTMLElement>('.hero-description');
+  const proof = heroSection.querySelector<HTMLElement>('.hero-proof');
+  const actionTargets = gsap.utils.toArray<HTMLElement>('.hero-actions > *', heroSection);
+  const dataItems = gsap.utils.toArray<HTMLElement>('.hero-data-strip span', heroSection);
+  const dataDots = gsap.utils.toArray<HTMLElement>('.hero-data-strip i', heroSection);
+
+  restoreTextOnCleanup(kicker, restoreCallbacks);
+
+  const finalKicker = kicker?.textContent?.trim() ?? '';
+
+  gsap.set([eyebrow, description, proof], {
+    autoAlpha: 0,
+    y: 16,
+    filter: 'blur(8px)'
+  });
+  gsap.set(titleLines, {
+    autoAlpha: 0,
+    yPercent: 112,
+    clipPath: 'inset(0% 0% 100% 0%)'
+  });
+  gsap.set(kicker, {
+    autoAlpha: 0,
+    yPercent: 86,
+    clipPath: 'inset(0% 0% 100% 0%)'
+  });
+  gsap.set(actionTargets, {
+    autoAlpha: 0,
+    y: 18,
+    scale: 0.98,
+    filter: 'blur(8px)'
+  });
+  gsap.set([...dataItems, ...dataDots], {
+    autoAlpha: 0,
+    y: 8,
+    scale: 0.96
+  });
+
+  const timeline = gsap.timeline({
+    defaults: {
+      ease: 'power3.out'
+    },
+    delay: 0.16
+  });
+
+  timeline
+    .to(eyebrow, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.46 }, 0)
+    .to(titleLines, { autoAlpha: 1, yPercent: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.78, stagger: 0.12 }, 0.12)
+    .to(kicker, {
+      autoAlpha: 1,
+      yPercent: 0,
+      clipPath: 'inset(0% 0% 0% 0%)',
+      duration: 0.78,
+      scrambleText: {
+        text: finalKicker,
+        chars: '01TENDERBIDFLOWAI',
+        revealDelay: 0.12
+      }
+    }, 0.38)
+    .to([description, proof], { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.72)
+    .to(actionTargets, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.92)
+    .to(dataItems, { autoAlpha: 1, y: 0, scale: 1, duration: 0.36, stagger: 0.055 }, 1.08)
+    .to(dataDots, { autoAlpha: 1, y: 0, scale: 1, duration: 0.28, stagger: 0.055 }, 1.14);
+}
+
+function setupSolutionFlow(shell: HTMLElement) {
+  const section = sectionRefs.get('solution');
+
+  if (!section) {
+    return;
+  }
+
+  const copyItems = gsap.utils.toArray<HTMLElement>('.section-copy > *', section);
+  const nodes = gsap.utils.toArray<HTMLElement>('.solution-node', section);
+  const centerNode = section.querySelector<HTMLElement>('.solution-node.node-1');
+  const sideNodes = nodes.filter(node => node !== centerNode);
+  const lines = gsap.utils.toArray<HTMLElement>('.stage-line', section);
+
+  gsap.set(copyItems, { autoAlpha: 0, y: 22, filter: 'blur(8px)' });
+  gsap.set(centerNode, { autoAlpha: 0, scale: 0.86, y: 26, filter: 'blur(12px)' });
+  gsap.set(sideNodes, {
+    autoAlpha: 0,
+    x: (index: number) => (index === 0 ? 92 : -92),
+    y: 22,
+    scale: 0.92,
+    filter: 'blur(12px)'
+  });
+  gsap.set(lines, { scaleX: 0, autoAlpha: 0 });
+
+  const timeline = gsap.timeline({
+    scrollTrigger: {
+      id: 'solution-flow-assembly',
+      trigger: section,
+      scroller: shell,
+      start: 'top 70%',
+      end: 'center 42%',
+      toggleActions: 'play none none reverse',
+      invalidateOnRefresh: true,
+      refreshPriority: 2
+    }
+  });
+
+  timeline
+    .to(copyItems, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.055, ease: 'power3.out' }, 0)
+    .to(centerNode, { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.64, ease: 'expo.out' }, 0.12)
+    .to(lines, { autoAlpha: 1, scaleX: 1, duration: 0.5, stagger: 0.08, ease: 'power2.inOut' }, 0.38)
+    .to(sideNodes, { autoAlpha: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.62, stagger: 0.08, ease: 'expo.out' }, 0.48)
+    .to(nodes, { '--node-glow': 1, duration: 0.32, stagger: 0.06, ease: 'power1.out' }, 0.82);
+}
+
+function setupBidWorkbenchFlow(shell: HTMLElement, restoreCallbacks: Array<() => void>) {
+  const section = sectionRefs.get('bid');
+
+  if (!section) {
+    return;
+  }
+
+  const copyItems = gsap.utils.toArray<HTMLElement>('.section-copy > *', section);
+  const showcase = section.querySelector<HTMLElement>('.bid-showcase');
+  const railItems = gsap.utils.toArray<HTMLElement>('.workbench-rail span', section);
+  const sheets = gsap.utils.toArray<HTMLElement>('.document-sheet', section);
+  const scanBeam = section.querySelector<HTMLElement>('.document-scan-beam');
+  const docLines = gsap.utils.toArray<HTMLElement>('.doc-lines span', section);
+  const reviewPanel = section.querySelector<HTMLElement>('.ai-review-panel');
+  const reviewScore = reviewPanel?.querySelector<HTMLElement>('strong') ?? null;
+  const workflowItems = gsap.utils.toArray<HTMLElement>('.workflow-track span', section);
+  const modules = gsap.utils.toArray<HTMLElement>('.module-ribbon article', section);
+  const finalScore = reviewScore?.textContent?.trim() ?? '90%';
+
+  restoreTextOnCleanup(reviewScore, restoreCallbacks);
+
+  gsap.set(copyItems, { autoAlpha: 0, x: -28, filter: 'blur(8px)' });
+  gsap.set(showcase, { autoAlpha: 0, y: 34, scale: 0.965, filter: 'blur(12px)' });
+  gsap.set(railItems, { autoAlpha: 0, x: -34 });
+  gsap.set(sheets, {
+    autoAlpha: 0,
+    y: (index: number) => (index === 0 ? 36 : 54),
+    rotation: (index: number) => (index === 0 ? -2 : 6),
+    scale: 0.96
+  });
+  gsap.set(scanBeam, { autoAlpha: 0, yPercent: -130 });
+  gsap.set(docLines, { scaleX: 0, transformOrigin: 'left center' });
+  gsap.set(reviewPanel, { autoAlpha: 0, scale: 0.86, y: 28, filter: 'blur(8px)' });
+  gsap.set(workflowItems, { autoAlpha: 0.32, y: 12, '--track-fill': 0 });
+  gsap.set(modules, { autoAlpha: 0, y: 26, rotationX: -18, transformOrigin: '50% 0%' });
+
+  const timeline = gsap.timeline({
+    defaults: { ease: 'power3.out' },
+    scrollTrigger: {
+      id: 'bid-workbench-scan',
+      trigger: section,
+      scroller: shell,
+      start: 'top 68%',
+      end: 'center 34%',
+      toggleActions: 'play none none reverse',
+      invalidateOnRefresh: true,
+      refreshPriority: 3
+    }
+  });
+
+  timeline
+    .to(copyItems, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.055 }, 0)
+    .to(showcase, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0.08)
+    .to(railItems, { autoAlpha: 1, x: 0, duration: 0.36, stagger: 0.055 }, 0.26)
+    .to(sheets, { autoAlpha: 1, y: 0, rotation: (index: number) => (index === 0 ? 0 : 3), scale: 1, duration: 0.54, stagger: 0.06, ease: 'expo.out' }, 0.34)
+    .to(scanBeam, { autoAlpha: 1, duration: 0.12 }, 0.56)
+    .to(scanBeam, { yPercent: 230, duration: 0.56, ease: 'power1.inOut' }, 0.58)
+    .to(scanBeam, { autoAlpha: 0, duration: 0.18 }, 1.02)
+    .to(docLines, { scaleX: 1, duration: 0.28, stagger: 0.06, ease: 'power2.out' }, 0.76)
+    .to(reviewPanel, { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.42, ease: 'back.out(1.2)' }, 0.92);
+
+  addCountTextTween(timeline, reviewScore, finalScore, 0.96, 0.38);
+
+  timeline
+    .to(workflowItems, { autoAlpha: 1, y: 0, '--track-fill': 1, duration: 0.34, stagger: 0.06 }, 1.12)
+    .to(modules, { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.42, stagger: 0.045, ease: 'power3.out' }, 1.24);
+}
+
+function setupTenderReviewFlow(shell: HTMLElement) {
+  const section = sectionRefs.get('tender');
+
+  if (!section) {
+    return;
+  }
+
+  const copyItems = gsap.utils.toArray<HTMLElement>('.section-copy > *', section);
+  const showcase = section.querySelector<HTMLElement>('.tender-showcase');
+  const pipelineLine = section.querySelector<HTMLElement>('.tender-pipeline-line');
+  const pipelineItems = gsap.utils.toArray<HTMLElement>('.tender-pipeline span:not(.tender-pipeline-line)', section);
+  const reviewRows = gsap.utils.toArray<HTMLElement>('.review-row', section);
+  const orbit = section.querySelector<HTMLElement>('.score-orbit');
+  const orbitLabels = gsap.utils.toArray<HTMLElement>('.score-orbit span', section);
+  const modules = gsap.utils.toArray<HTMLElement>('.tender-module-list article', section);
+
+  gsap.set(copyItems, { autoAlpha: 0, x: -24, filter: 'blur(8px)' });
+  gsap.set(showcase, { autoAlpha: 0, y: 38, scale: 0.968, filter: 'blur(12px)' });
+  gsap.set(pipelineLine, { scaleY: 0, transformOrigin: 'top center' });
+  gsap.set(pipelineItems, { autoAlpha: 0, x: -34 });
+  gsap.set(reviewRows, { autoAlpha: 0, x: 64, scale: 0.97, filter: 'blur(8px)' });
+  gsap.set(orbit, { autoAlpha: 0, scale: 0.72, filter: 'blur(10px)' });
+  gsap.set(orbitLabels, { autoAlpha: 0, scale: 0.82 });
+  gsap.set(modules, { autoAlpha: 0, y: 28, rotationX: -20, transformOrigin: '50% 0%' });
+
+  const timeline = gsap.timeline({
+    defaults: { ease: 'power3.out' },
+    scrollTrigger: {
+      id: 'tender-review-closure',
+      trigger: section,
+      scroller: shell,
+      start: 'top 68%',
+      end: 'center 34%',
+      toggleActions: 'play none none reverse',
+      invalidateOnRefresh: true,
+      refreshPriority: 4
+    }
+  });
+
+  timeline
+    .to(copyItems, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.055 }, 0)
+    .to(showcase, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0.08)
+    .to(pipelineLine, { scaleY: 1, duration: 0.56, ease: 'power2.inOut' }, 0.28)
+    .to(pipelineItems, { autoAlpha: 1, x: 0, duration: 0.34, stagger: 0.055 }, 0.36)
+    .to(reviewRows, { autoAlpha: 1, x: 0, scale: 1, filter: 'blur(0px)', duration: 0.44, stagger: 0.08, ease: 'expo.out' }, 0.58)
+    .to(orbit, { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration: 0.54, ease: 'back.out(1.18)' }, 0.76)
+    .to(orbitLabels, { autoAlpha: 1, scale: 1, duration: 0.26, stagger: 0.055 }, 0.92)
+    .to(modules, { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.42, stagger: 0.045 }, 1.06);
+}
+
+function setupEvidenceMotion(shell: HTMLElement, restoreCallbacks: Array<() => void>) {
+  const valueSection = sectionRefs.get('value');
+  const securitySection = sectionRefs.get('security');
+  const trustSection = sectionRefs.get('trust');
+  const contactSection = sectionRefs.get('contact');
+
+  if (valueSection) {
+    const copyItems = gsap.utils.toArray<HTMLElement>('.section-copy > *', valueSection);
+    const metricCards = gsap.utils.toArray<HTMLElement>('.metric-card', valueSection);
+    const metricValues = metricCards.map(card => card.querySelector<HTMLElement>('strong'));
+
+    metricValues.forEach(value => restoreTextOnCleanup(value, restoreCallbacks));
+    gsap.set(copyItems, { autoAlpha: 0, y: 22, filter: 'blur(8px)' });
+    gsap.set(metricCards, { autoAlpha: 0, y: 34, rotationX: -18, transformOrigin: '50% 0%' });
+
+    const timeline = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: {
+        id: 'value-evidence-count',
+        trigger: valueSection,
+        scroller: shell,
+        start: 'top 70%',
+        end: 'center 40%',
+        toggleActions: 'play none none reverse',
+        invalidateOnRefresh: true,
+        refreshPriority: 5
+      }
+    });
+
+    timeline
+      .to(copyItems, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.46, stagger: 0.055 }, 0)
+      .to(metricCards, { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.46, stagger: 0.07, ease: 'power3.out' }, 0.18);
+
+    metricValues.forEach((value, index) => {
+      if (!value) {
+        return;
+      }
+
+      addCountTextTween(timeline, value, value.textContent?.trim() ?? '', 0.34 + index * 0.07, 0.36);
+    });
+  }
+
+  if (securitySection) {
+    const copyItems = gsap.utils.toArray<HTMLElement>('.section-copy > *', securitySection);
+    const device = securitySection.querySelector<HTMLElement>('.security-device');
+    const cards = gsap.utils.toArray<HTMLElement>('.security-card', securitySection);
+
+    gsap.set(copyItems, { autoAlpha: 0, x: -24, filter: 'blur(8px)' });
+    gsap.set(device, { autoAlpha: 0, scale: 0.88, rotateY: -12, filter: 'blur(10px)' });
+    gsap.set(cards, { autoAlpha: 0, x: 34, '--shield-fill': 0 });
+
+    gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: {
+        id: 'security-shield-layer',
+        trigger: securitySection,
+        scroller: shell,
+        start: 'top 70%',
+        end: 'center 40%',
+        toggleActions: 'play none none reverse',
+        invalidateOnRefresh: true,
+        refreshPriority: 6
+      }
+    })
+      .to(copyItems, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.46, stagger: 0.055 }, 0)
+      .to(device, { autoAlpha: 1, scale: 1, rotateY: 0, filter: 'blur(0px)', duration: 0.6, ease: 'expo.out' }, 0.16)
+      .to(cards, { autoAlpha: 1, x: 0, '--shield-fill': 1, duration: 0.42, stagger: 0.075 }, 0.38);
+  }
+
+  if (trustSection) {
+    const copyItems = gsap.utils.toArray<HTMLElement>('.section-copy > *', trustSection);
+    const photo = trustSection.querySelector<HTMLElement>('.company-photo-card');
+    const stats = gsap.utils.toArray<HTMLElement>('.company-stat-strip strong', trustSection);
+    const cards = gsap.utils.toArray<HTMLElement>('.trust-card', trustSection);
+
+    stats.forEach(stat => restoreTextOnCleanup(stat, restoreCallbacks));
+    gsap.set(copyItems, { autoAlpha: 0, y: 22, filter: 'blur(8px)' });
+    gsap.set(photo, { autoAlpha: 0, y: 38, scale: 0.97, filter: 'blur(10px)' });
+    gsap.set(cards, { autoAlpha: 0, y: 28, rotation: (index: number) => [-2, 1.5, -1, 2][index] ?? 0 });
+
+    const timeline = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: {
+        id: 'trust-archive-wall',
+        trigger: trustSection,
+        scroller: shell,
+        start: 'top 70%',
+        end: 'center 40%',
+        toggleActions: 'play none none reverse',
+        invalidateOnRefresh: true,
+        refreshPriority: 7
+      }
+    });
+
+    timeline
+      .to(copyItems, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.46, stagger: 0.055 }, 0)
+      .to(photo, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0.16)
+      .to(cards, { autoAlpha: 1, y: 0, rotation: 0, duration: 0.42, stagger: 0.065 }, 0.36);
+
+    stats.forEach((stat, index) => {
+      addCountTextTween(timeline, stat, stat.textContent?.trim() ?? '', 0.38 + index * 0.06, 0.34);
+    });
+  }
+
+  if (contactSection) {
+    const panel = contactSection.querySelector<HTMLElement>('.contact-panel');
+    const copyItems = gsap.utils.toArray<HTMLElement>('.contact-panel-copy > *', contactSection);
+    const actions = gsap.utils.toArray<HTMLElement>('.contact-action', contactSection);
+    const metaItems = gsap.utils.toArray<HTMLElement>('.contact-company-meta span', contactSection);
+
+    gsap.set(panel, { autoAlpha: 0, scale: 0.97, y: 34, filter: 'blur(12px)' });
+    gsap.set(copyItems, { autoAlpha: 0, y: 18 });
+    gsap.set(actions, { autoAlpha: 0, x: (index: number) => [-34, 34][index] ?? 0, scale: 0.98 });
+    gsap.set(metaItems, { autoAlpha: 0, y: 10 });
+
+    gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: {
+        id: 'contact-converge',
+        trigger: contactSection,
+        scroller: shell,
+        start: 'top 76%',
+        end: 'center 48%',
+        toggleActions: 'play none none reverse',
+        invalidateOnRefresh: true,
+        refreshPriority: 8
+      }
+    })
+      .to(panel, { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0)
+      .to(copyItems, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.055 }, 0.14)
+      .to(actions, { autoAlpha: 1, x: 0, scale: 1, duration: 0.4, stagger: 0.07 }, 0.36)
+      .to(metaItems, { autoAlpha: 1, y: 0, duration: 0.32, stagger: 0.055 }, 0.56);
+  }
+}
+
+function setupStoryMotion() {
+  const shell = landingShell.value;
+
+  if (!shell) {
+    return;
+  }
+
+  storyMotionMedia?.revert();
+  storyMotionMedia = gsap.matchMedia();
+
+  storyMotionMedia.add('(min-width: 1121px) and (prefers-reduced-motion: no-preference)', () => {
+    const restoreCallbacks: Array<() => void> = [];
+    const context = gsap.context(() => {
+      setupHeroIntro(restoreCallbacks);
+      setupSolutionFlow(shell);
+      setupBidWorkbenchFlow(shell, restoreCallbacks);
+      setupTenderReviewFlow(shell);
+      setupEvidenceMotion(shell, restoreCallbacks);
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+      void document.fonts.ready.then(() => ScrollTrigger.refresh());
+    }, shell);
+
+    return () => {
+      restoreCallbacks.forEach(callback => callback());
+      context.revert();
+    };
+  });
 }
 
 function setupPainScrollytelling() {
@@ -608,6 +1066,7 @@ onMounted(async () => {
 
   await nextTick();
   setupStoryCanvas();
+  setupStoryMotion();
   setupPainScrollytelling();
 });
 
@@ -616,6 +1075,8 @@ onUnmounted(() => {
   sectionObserver = null;
   painMotionMedia?.revert();
   painMotionMedia = null;
+  storyMotionMedia?.revert();
+  storyMotionMedia = null;
   cleanupStoryCanvas?.();
   cleanupStoryCanvas = null;
 });
@@ -693,8 +1154,8 @@ onUnmounted(() => {
       <div class="hero-copy gallery-copy reveal-stack">
         <p class="eyebrow">BidFlow AI / Tender-Bid OS</p>
         <h1>
-          <span>招投标全流程</span>
-          <span>Tender-Bid AI Platform</span>
+          <span class="hero-title-line">招投标全流程</span>
+          <span class="hero-title-kicker">Tender-Bid AI Platform</span>
         </h1>
         <p class="hero-description">
           连接招标策划、投标响应、智能评审与风险审查的一站式 AI 作业平台。
@@ -766,6 +1227,8 @@ onUnmounted(() => {
           <h3>{{ node.title }}</h3>
           <p>{{ node.description }}</p>
         </article>
+        <div class="stage-pulse stage-pulse-left" aria-hidden="true" />
+        <div class="stage-pulse stage-pulse-right" aria-hidden="true" />
         <div class="stage-line stage-line-left" aria-hidden="true" />
         <div class="stage-line stage-line-right" aria-hidden="true" />
       </div>
@@ -809,6 +1272,7 @@ onUnmounted(() => {
                 </div>
               </article>
               <article class="document-sheet document-sheet-back" aria-hidden="true" />
+              <span class="document-scan-beam" aria-hidden="true" />
               <div class="ai-review-panel">
                 <span>AI 审查结果</span>
                 <strong>90%</strong>
@@ -855,6 +1319,7 @@ onUnmounted(() => {
 
           <div class="tender-console-body">
             <div class="tender-pipeline" aria-label="招采作业流程">
+              <span class="tender-pipeline-line" aria-hidden="true" />
               <span v-for="step in tenderPipeline" :key="step">{{ step }}</span>
             </div>
 
