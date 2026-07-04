@@ -1287,6 +1287,20 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   align-items: center;
+  isolation: isolate;
+}
+
+.solution-stage::before {
+  position: absolute;
+  inset: 14% 5%;
+  z-index: -2;
+  border-radius: 42px;
+  background:
+    linear-gradient(90deg, transparent 0 22%, rgba(117, 88, 255, 0.1) 22.2% 22.8%, transparent 23% 77%, rgba(84, 185, 216, 0.1) 77.2% 77.8%, transparent 78%),
+    radial-gradient(circle at 50% 50%, rgba(117, 88, 255, 0.16), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent);
+  content: '';
+  opacity: 0.56;
 }
 
 .solution-node {
@@ -1337,14 +1351,48 @@ h3 {
   will-change: transform, opacity;
 }
 
+.stage-line::after {
+  position: absolute;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7d63ff;
+  box-shadow:
+    0 0 0 5px rgba(117, 88, 255, 0.1),
+    0 0 18px rgba(117, 88, 255, 0.45);
+  content: '';
+  opacity: 0;
+}
+
 .stage-line-left {
   left: 22%;
   transform-origin: right center;
 }
 
+.stage-line-left::after {
+  right: 0;
+}
+
 .stage-line-right {
   right: 22%;
   transform-origin: left center;
+}
+
+.stage-line-right::after {
+  left: 0;
+}
+
+.solution-section.is-active .stage-line-left::after {
+  animation: packetTravelLeft 2.8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+.solution-section.is-active .stage-line-right::after {
+  animation-delay: 1.2s;
+  animation-duration: 2.8s;
+  animation-iteration-count: infinite;
+  animation-name: packetTravelRight;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
 }
 
 .stage-pulse {
@@ -1518,6 +1566,26 @@ h3 {
   opacity: 0.54;
 }
 
+.document-stage::after {
+  position: absolute;
+  inset: -28% 8%;
+  z-index: 1;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.84), transparent),
+    linear-gradient(90deg, transparent, rgba(117, 88, 255, 0.2), rgba(84, 185, 216, 0.16), transparent);
+  content: '';
+  filter: blur(2px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-72%);
+}
+
+.bid-section.is-active .document-stage::after {
+  animation: documentScanLoop 3.8s ease-in-out 500ms infinite;
+}
+
 .document-scan-beam {
   position: absolute;
   right: 6%;
@@ -1656,6 +1724,12 @@ h3 {
   background: rgba(255, 255, 255, 0.3);
 }
 
+.bid-section.is-active .workflow-track span {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.2)),
+    linear-gradient(90deg, rgba(117, 88, 255, 0.08), rgba(84, 185, 216, 0.05));
+}
+
 .workflow-track span::after {
   position: absolute;
   inset: auto 12px 8px;
@@ -1683,6 +1757,10 @@ h3 {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.12)), rgba(255, 255, 255, 0.16);
   transform-style: preserve-3d;
   will-change: transform, opacity;
+}
+
+.bid-section.is-active .module-ribbon article {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .module-ribbon article::before {
@@ -1720,6 +1798,22 @@ h3 {
   grid-template-columns: 0.38fr 0.62fr;
   gap: 22px;
   padding: 28px;
+}
+
+.tender-console-body::after {
+  position: absolute;
+  top: 16%;
+  right: 12%;
+  bottom: 12%;
+  left: 42%;
+  z-index: -1;
+  border: 1px solid rgba(117, 88, 255, 0.08);
+  border-radius: 34px;
+  background:
+    linear-gradient(135deg, rgba(117, 88, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 78% 24%, rgba(117, 88, 255, 0.16), transparent 28%);
+  content: '';
+  opacity: 0.64;
 }
 
 .tender-pipeline {
@@ -1846,6 +1940,19 @@ h3 {
   animation: orbitSpin 14s linear infinite;
 }
 
+.score-orbit::after {
+  position: absolute;
+  inset: -14px;
+  border: 1px solid rgba(117, 88, 255, 0.16);
+  border-radius: 50%;
+  content: '';
+  opacity: 0.42;
+}
+
+.tender-section.is-active .score-orbit::after {
+  animation: orbitPulse 2.8s ease-in-out infinite;
+}
+
 .score-orbit strong {
   color: rgba(34, 34, 44, 0.86);
   font-size: 44px;
@@ -1913,7 +2020,28 @@ h3 {
 }
 
 .metric-grid {
+  position: relative;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metric-grid::before {
+  position: absolute;
+  inset: 18px 18px auto;
+  z-index: 0;
+  height: 120px;
+  background:
+    linear-gradient(120deg, transparent 0 8%, rgba(117, 88, 255, 0.32) 8.2% 8.7%, transparent 9% 31%, rgba(84, 185, 216, 0.28) 31.2% 31.7%, transparent 32% 59%, rgba(117, 88, 255, 0.26) 59.2% 59.7%, transparent 60%),
+    radial-gradient(circle at 16% 72%, rgba(117, 88, 255, 0.16), transparent 8%),
+    radial-gradient(circle at 44% 42%, rgba(84, 185, 216, 0.14), transparent 8%),
+    radial-gradient(circle at 78% 24%, rgba(117, 88, 255, 0.13), transparent 8%);
+  content: '';
+  opacity: 0.3;
+  pointer-events: none;
+  transform-origin: left center;
+}
+
+.value-section.is-active .metric-grid::before {
+  animation: metricTrace 4.8s ease-in-out infinite;
 }
 
 .metric-card {
@@ -1924,6 +2052,35 @@ h3 {
   border-radius: 26px;
   transform-style: preserve-3d;
   will-change: transform, opacity;
+}
+
+.metric-card::before {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 86px;
+  height: 34px;
+  background:
+    linear-gradient(90deg, rgba(117, 88, 255, 0.2), transparent 2px) 0 100% / 8px 40% repeat-x;
+  content: '';
+  opacity: 0.34;
+  transform-origin: bottom left;
+}
+
+.value-section.is-active .metric-card::before {
+  animation: metricBars 2.6s ease-in-out infinite;
+}
+
+.value-section.is-active .metric-card:nth-child(2)::before {
+  animation-delay: 360ms;
+}
+
+.value-section.is-active .metric-card:nth-child(3)::before {
+  animation-delay: 720ms;
+}
+
+.value-section.is-active .metric-card:nth-child(4)::before {
+  animation-delay: 1080ms;
 }
 
 .metric-card strong {
@@ -1944,10 +2101,25 @@ h3 {
 }
 
 .security-layout {
+  position: relative;
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
   gap: 22px;
   align-items: center;
+}
+
+.security-layout::before {
+  position: absolute;
+  inset: 10% 16% 10% 8%;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, transparent 0 38%, rgba(84, 185, 216, 0.12) 38.2% 38.8%, transparent 39%),
+    linear-gradient(22deg, transparent 0 44%, rgba(117, 88, 255, 0.1) 44.2% 44.8%, transparent 45%),
+    radial-gradient(circle at 24% 48%, rgba(117, 88, 255, 0.18), transparent 16%),
+    radial-gradient(circle at 76% 22%, rgba(84, 185, 216, 0.14), transparent 14%);
+  content: '';
+  opacity: 0.58;
+  pointer-events: none;
 }
 
 .security-device {
@@ -1976,6 +2148,22 @@ h3 {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 38px;
   content: '';
+}
+
+.security-device::after {
+  position: absolute;
+  inset: 8%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 44px;
+  background:
+    linear-gradient(120deg, transparent 0 42%, rgba(255, 255, 255, 0.12) 42.2%, transparent 48%),
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(255, 255, 255, 0.04) 29px 30px);
+  content: '';
+  opacity: 0.7;
+}
+
+.security-section.is-active .security-device::after {
+  animation: shieldSweep 4.2s ease-in-out infinite;
 }
 
 .security-device strong {
@@ -2035,8 +2223,35 @@ h3 {
 }
 
 .trust-card {
+  position: relative;
+  overflow: hidden;
   transform-origin: 50% 0%;
   will-change: transform, opacity;
+}
+
+.trust-card::before {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(117, 88, 255, 0.62), rgba(84, 185, 216, 0.24), transparent);
+  content: '';
+  opacity: 0.46;
+  transform: scaleX(0.34);
+  transform-origin: left center;
+}
+
+.trust-section.is-active .trust-card::before {
+  animation: proofLine 3.4s ease-in-out infinite;
+}
+
+.trust-section.is-active .trust-card:nth-child(2)::before {
+  animation-delay: 420ms;
+}
+
+.trust-section.is-active .trust-card:nth-child(3)::before {
+  animation-delay: 840ms;
 }
 
 .trust-proof {
@@ -2065,9 +2280,28 @@ h3 {
   object-fit: cover;
 }
 
+.company-photo-card::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, transparent 0 22%, rgba(255, 255, 255, 0.55) 28%, transparent 35%),
+    linear-gradient(90deg, transparent, rgba(117, 88, 255, 0.12), transparent);
+  content: '';
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-42%);
+}
+
+.trust-section.is-active .company-photo-card::before {
+  animation: archiveScan 4.8s ease-in-out 400ms infinite;
+}
+
 .company-photo-card::after {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
     linear-gradient(180deg, transparent 42%, rgba(12, 18, 34, 0.28)),
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.22), transparent 38%);
@@ -2079,7 +2313,7 @@ h3 {
   right: 22px;
   bottom: 20px;
   left: 22px;
-  z-index: 1;
+  z-index: 2;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   overflow: hidden;
@@ -2123,11 +2357,39 @@ h3 {
 }
 
 .contact-panel {
+  position: relative;
+  isolation: isolate;
   width: min(1080px, 100%);
   padding: clamp(42px, 6vw, 76px);
+  overflow: hidden;
   border-radius: 42px;
   text-align: left;
   will-change: transform, opacity, filter;
+}
+
+.contact-panel::before {
+  position: absolute;
+  inset: 18px;
+  z-index: 0;
+  border-radius: 34px;
+  background:
+    linear-gradient(90deg, transparent 10%, rgba(117, 88, 255, 0.12) 10.4%, transparent 10.8% 48%, rgba(84, 185, 216, 0.11) 48.4%, transparent 48.8%),
+    radial-gradient(circle at 25% 68%, rgba(117, 88, 255, 0.18), transparent 12%),
+    radial-gradient(circle at 50% 68%, rgba(84, 185, 216, 0.12), transparent 12%),
+    radial-gradient(circle at 75% 68%, rgba(117, 88, 255, 0.14), transparent 12%);
+  content: '';
+  opacity: 0.3;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.contact-section.is-active .contact-panel::before {
+  animation: contactRoute 6.4s ease-in-out infinite;
+}
+
+.contact-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .contact-panel-copy {
@@ -2177,6 +2439,29 @@ h3 {
     background 180ms ease,
     box-shadow 180ms ease;
   will-change: transform, opacity;
+}
+
+.contact-action::before {
+  position: absolute;
+  inset: auto 24px 20px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(117, 88, 255, 0.52), rgba(84, 185, 216, 0.28), transparent);
+  content: '';
+  opacity: 0.28;
+  transform: scaleX(0.36);
+  transform-origin: left center;
+}
+
+.contact-section.is-active .contact-action::before {
+  animation: actionPulse 3s ease-in-out infinite;
+}
+
+.contact-section.is-active .contact-action:nth-child(2)::before {
+  animation-delay: 380ms;
+}
+
+.contact-section.is-active .contact-action:nth-child(3)::before {
+  animation-delay: 760ms;
 }
 
 .contact-action::after {
@@ -2546,6 +2831,62 @@ h3 {
   }
 }
 
+@keyframes packetTravelLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+
+  14%,
+  74% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-220px) scale(1);
+  }
+}
+
+@keyframes packetTravelRight {
+  0% {
+    opacity: 0;
+    transform: translateX(0) scale(0.7);
+  }
+
+  14%,
+  74% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(220px) scale(1);
+  }
+}
+
+@keyframes documentScanLoop {
+  0%,
+  34% {
+    opacity: 0;
+    transform: translateY(-72%);
+  }
+
+  48% {
+    opacity: 0.68;
+  }
+
+  72% {
+    opacity: 0.24;
+    transform: translateY(72%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(92%);
+  }
+}
+
 @keyframes orbitSpin {
   from {
     transform: rotate(0deg);
@@ -2553,6 +2894,123 @@ h3 {
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes orbitPulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.92);
+  }
+
+  45% {
+    opacity: 0.58;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes shieldSweep {
+  0%,
+  36% {
+    opacity: 0.32;
+    transform: translateX(-12%);
+  }
+
+  58% {
+    opacity: 0.82;
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: translateX(12%);
+  }
+}
+
+@keyframes metricTrace {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scaleX(0.72) translateY(0);
+  }
+
+  48% {
+    opacity: 0.46;
+    transform: scaleX(1) translateY(-4px);
+  }
+}
+
+@keyframes metricBars {
+  0%,
+  100% {
+    opacity: 0.26;
+    transform: scaleY(0.72);
+  }
+
+  45% {
+    opacity: 0.58;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes archiveScan {
+  0%,
+  24% {
+    opacity: 0;
+    transform: translateY(-42%);
+  }
+
+  42% {
+    opacity: 0.72;
+  }
+
+  72% {
+    opacity: 0.2;
+    transform: translateY(48%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(58%);
+  }
+}
+
+@keyframes proofLine {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleX(0.34);
+  }
+
+  46% {
+    opacity: 0.72;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes contactRoute {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  50% {
+    opacity: 0.42;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes actionPulse {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scaleX(0.36);
+  }
+
+  48% {
+    opacity: 0.62;
+    transform: scaleX(1);
   }
 }
 
