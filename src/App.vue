@@ -117,7 +117,7 @@ const solutionNodes: ContentCard[] = [
   },
   {
     label: 'AI Engine',
-    title: 'BidFlow Core',
+    title: 'BidFlow AI Core',
     description: '连接文档解析、规则抽取、知识复用、内容生成、风险识别与评分辅助。'
   },
   {
@@ -282,11 +282,11 @@ const contactActions: ContactAction[] = [
 const modalCopies: Record<ModalKind, ModalCopy> = {
   demo: {
     eyebrow: 'Book A Demo',
-    title: '预约产品演示',
-    description: '留下基本信息，我们会结合你的招采/投标业务场景安排演示内容。',
+    title: '预约智标宝产品演示',
+    description: '留下基本信息，我们会结合你的招采、投标、评审或安全部署场景安排演示内容。',
     submitLabel: '提交预约',
     successTitle: '预约信息已收到',
-    successText: '我们会根据你填写的场景安排演示沟通。当前为前端模拟提交，后续可接入飞书表单或企业微信。'
+    successText: '我们会根据你填写的场景安排演示沟通。'
   },
   contact: {
     eyebrow: 'Contact',
@@ -294,7 +294,7 @@ const modalCopies: Record<ModalKind, ModalCopy> = {
     description: '用于产品咨询、部署方式沟通、平台开通和企业采购前期对接。',
     submitLabel: '提交咨询',
     successTitle: '咨询信息已收到',
-    successText: '当前为前端模拟提交。正式上线时可接入客服、邮箱或工单系统。'
+    successText: '我们会尽快与你确认需求和后续沟通方式。'
   },
   feedback: {
     eyebrow: 'Feedback',
@@ -302,7 +302,7 @@ const modalCopies: Record<ModalKind, ModalCopy> = {
     description: '欢迎提交产品建议、问题反馈、演示需求或行业场景补充。',
     submitLabel: '提交反馈',
     successTitle: '反馈已收到',
-    successText: '感谢你的建议。当前为前端模拟提交，后续可接入飞书多维表、问卷或工单系统。'
+    successText: '感谢你的建议，智标宝团队会持续跟进产品体验。'
   }
 };
 
@@ -522,18 +522,22 @@ function setupHeroIntro(restoreCallbacks: Array<() => void>) {
 
   const eyebrow = heroSection.querySelector<HTMLElement>('.gallery-copy .eyebrow');
   const titleLines = gsap.utils.toArray<HTMLElement>('.hero-title-line', heroSection);
+  const productName = heroSection.querySelector<HTMLElement>('.hero-title-product');
   const kicker = heroSection.querySelector<HTMLElement>('.hero-title-kicker');
   const description = heroSection.querySelector<HTMLElement>('.hero-description');
   const proof = heroSection.querySelector<HTMLElement>('.hero-proof');
   const actionTargets = gsap.utils.toArray<HTMLElement>('.hero-actions > *', heroSection);
   const dataItems = gsap.utils.toArray<HTMLElement>('.hero-data-strip span', heroSection);
   const dataDots = gsap.utils.toArray<HTMLElement>('.hero-data-strip i', heroSection);
+  const introCopy = [eyebrow, description, proof].filter((target): target is HTMLElement => Boolean(target));
+  const bodyCopy = [description, proof].filter((target): target is HTMLElement => Boolean(target));
 
+  restoreTextOnCleanup(productName, restoreCallbacks);
   restoreTextOnCleanup(kicker, restoreCallbacks);
 
-  const finalKicker = kicker?.textContent?.trim() ?? '';
+  const finalProductName = productName?.textContent?.trim() ?? '';
 
-  gsap.set([eyebrow, description, proof], {
+  gsap.set(introCopy, {
     autoAlpha: 0,
     y: 16,
     filter: 'blur(8px)'
@@ -567,21 +571,31 @@ function setupHeroIntro(restoreCallbacks: Array<() => void>) {
     delay: 0.16
   });
 
+  if (eyebrow) {
+    timeline.to(eyebrow, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.46 }, 0);
+  }
+
+  timeline.to(titleLines, { autoAlpha: 1, yPercent: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.78, stagger: 0.12 }, 0.12);
+
+  if (productName && finalProductName) {
+    timeline.to(productName, {
+      duration: 0.76,
+      scrambleText: {
+        text: finalProductName,
+        chars: '01TENDERBIDFLOWAI',
+        revealDelay: 0.1
+      }
+    }, 0.34);
+  }
+
   timeline
-    .to(eyebrow, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.46 }, 0)
-    .to(titleLines, { autoAlpha: 1, yPercent: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.78, stagger: 0.12 }, 0.12)
     .to(kicker, {
       autoAlpha: 1,
       yPercent: 0,
       clipPath: 'inset(0% 0% 0% 0%)',
-      duration: 0.78,
-      scrambleText: {
-        text: finalKicker,
-        chars: '01TENDERBIDFLOWAI',
-        revealDelay: 0.12
-      }
+      duration: 0.72
     }, 0.38)
-    .to([description, proof], { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.72)
+    .to(bodyCopy, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.72)
     .to(actionTargets, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.92)
     .to(dataItems, { autoAlpha: 1, y: 0, scale: 1, duration: 0.36, stagger: 0.055 }, 1.08)
     .to(dataDots, { autoAlpha: 1, y: 0, scale: 1, duration: 0.28, stagger: 0.055 }, 1.14);
@@ -1098,6 +1112,10 @@ onUnmounted(() => {
         <span class="brand-symbol" aria-hidden="true">
           <img src="/brand/bidflow-logo.svg?v=20260703b" alt="" />
         </span>
+        <span class="brand-wordmark">
+          <strong>智标宝</strong>
+          <small>BidFlow AI</small>
+        </span>
       </button>
 
       <nav class="nav-links" aria-label="Main navigation" :style="navIndicatorStyle">
@@ -1152,15 +1170,17 @@ onUnmounted(() => {
       </div>
 
       <div class="hero-copy gallery-copy reveal-stack">
-        <p class="eyebrow">BidFlow AI / Tender-Bid OS</p>
         <h1>
-          <span class="hero-title-line">招投标全流程</span>
-          <span class="hero-title-kicker">Tender-Bid AI Platform</span>
+          <span class="hero-title-line">
+            智标宝
+            <em class="hero-title-product">BidFlow AI</em>
+          </span>
+          <span class="hero-title-kicker">招投标全流程 AI 作业平台</span>
         </h1>
         <p class="hero-description">
-          连接招标策划、投标响应、智能评审与风险审查的一站式 AI 作业平台。
+          连接招标策划、投标响应、智能评审与风险审查，让标书更快生成，让风险更早暴露。
         </p>
-        <p class="hero-proof">让标书更快生成，让风险更早暴露，让评审更有依据。</p>
+        <p class="hero-proof">面向招采端、投标端和企业级安全部署的 AI 作业系统。</p>
         <div class="hero-actions">
           <LiquidGlassButton label="预约演示" size="hero" @click="openUrlOrModal(demoUrl, 'demo')" />
           <div class="platform-entry-group" aria-label="平台入口">
@@ -1194,7 +1214,7 @@ onUnmounted(() => {
       data-section="pain"
     >
       <div class="section-copy pain-copy">
-        <p class="eyebrow">Why BidFlow</p>
+        <p class="eyebrow">Why 智标宝</p>
         <h2>招投标团队真正头疼的，不只是写标书</h2>
         <p>流程长、资料散、风险隐蔽、审查繁重。智标宝把这些重复劳动和关键风险提前收束到一套 AI 作业链里。</p>
       </div>
@@ -1217,7 +1237,7 @@ onUnmounted(() => {
     >
       <div class="section-copy reveal-item">
         <p class="eyebrow">One Engine. Two Workflows.</p>
-        <h2>一套 AI Engine，贯穿招采与投标两条作业链</h2>
+        <h2>一套 BidFlow AI Engine，贯穿招采与投标两条作业链</h2>
         <p>智标宝不是单个工具，而是把招采端、投标端和底层 AI 能力连接成一个可持续复用的业务中枢。</p>
       </div>
 
@@ -1386,7 +1406,7 @@ onUnmounted(() => {
       <div class="security-layout">
         <div class="security-device reveal-item" aria-hidden="true">
           <span class="device-light" />
-          <strong>BidFlow<br />Secure Node</strong>
+          <strong>BidFlow AI<br />Secure Node</strong>
           <i>本地私有化 / 软硬一体 / 数据留痕</i>
         </div>
         <div class="security-list">
@@ -1408,12 +1428,15 @@ onUnmounted(() => {
       <div class="section-copy reveal-item">
         <p class="eyebrow">Company Trust</p>
         <h2>来自炫佳科技的 AI 工业化能力</h2>
-        <p>智标宝背后是长期产业沉淀、AI 技术投入与行业场景落地能力。融资、奖项与生态合作信息上线前可再做最终公开口径确认。</p>
+        <p>智标宝由炫佳科技打造，依托长期产业沉淀、AI 技术投入与行业场景落地能力，支撑企业级招投标作业平台持续演进。</p>
       </div>
 
       <div class="trust-proof reveal-item">
         <div class="company-photo-card">
           <img src="/media/company-campus-ai.png" alt="炫佳科技办公楼外观" />
+          <div class="company-logo-badge" aria-label="炫佳科技">
+            <img src="/media/company-logo.png" alt="炫佳科技" />
+          </div>
           <div class="company-stat-strip" aria-label="公司关键数据">
             <span v-for="stat in companyStats" :key="stat.label">
               <strong>{{ stat.value }}</strong>
@@ -1459,9 +1482,10 @@ onUnmounted(() => {
         </div>
 
         <div class="contact-company-meta" aria-label="公司信息">
+          <img src="/media/company-logo.png" alt="炫佳科技" />
           <span>南京炫佳网络科技有限公司</span>
           <span>南京江北新区</span>
-          <span>企业级招投标 AI 平台咨询</span>
+          <span>智标宝企业级招投标 AI 平台咨询</span>
         </div>
       </div>
     </section>

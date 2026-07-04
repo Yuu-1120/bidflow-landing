@@ -334,10 +334,12 @@ button {
 
 .brand-mark {
   display: inline-flex;
-  width: 54px;
+  width: auto;
+  min-width: 148px;
   height: 54px;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 10px;
   padding: 0;
   background: transparent;
   transition:
@@ -362,6 +364,27 @@ button {
 
 .brand-symbol img {
   object-fit: contain;
+}
+
+.brand-wordmark {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  color: rgba(31, 32, 42, 0.88);
+  line-height: 1;
+}
+
+.brand-wordmark strong {
+  font-size: 17px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.brand-wordmark small {
+  color: rgba(86, 80, 105, 0.62);
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.02em;
 }
 
 .nav-links {
@@ -831,11 +854,24 @@ button {
   white-space: nowrap;
 }
 
+.hero-title-product {
+  display: inline-block;
+  margin-left: clamp(14px, 1.5vw, 24px);
+  color: #8f899f;
+  font-family: 'Segoe UI Variable', 'Alibaba PuHuiTi', sans-serif;
+  font-size: clamp(38px, 4vw, 66px);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
 .gallery-copy h1 span:last-child {
   max-width: 920px;
   color: #8f899f;
   font-family: 'Segoe UI Variable', 'Alibaba PuHuiTi', sans-serif;
-  font-size: clamp(40px, 4.05vw, 66px);
+  font-size: clamp(34px, 3.55vw, 58px);
   font-weight: 400;
   line-height: 1.08;
   white-space: nowrap;
@@ -993,6 +1029,7 @@ button {
 }
 
 .hero-data-strip {
+  --hero-flow-duration: 5.8s;
   position: absolute;
   left: max(64px, calc((100vw - 1320px) / 2));
   bottom: 38px;
@@ -1001,6 +1038,8 @@ button {
   gap: 12px;
   align-items: center;
   padding: 10px 15px;
+  overflow: hidden;
+  isolation: isolate;
   border: 1px solid rgba(255, 255, 255, 0.54);
   border-radius: 999px;
   color: rgba(38, 36, 52, 0.58);
@@ -1011,12 +1050,106 @@ button {
   font-weight: 650;
 }
 
+.hero-data-strip::before,
+.hero-data-strip::after {
+  position: absolute;
+  pointer-events: none;
+  content: '';
+}
+
+.hero-data-strip::before {
+  inset: 5px 9px;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, transparent, rgba(117, 88, 255, 0.16), rgba(84, 185, 216, 0.1), transparent),
+    linear-gradient(90deg, transparent 0 18%, rgba(255, 255, 255, 0.46) 48%, transparent 82%);
+  opacity: 0.24;
+  transform: scaleX(0.72);
+  transform-origin: left center;
+}
+
+.hero-data-strip::after {
+  top: 50%;
+  left: 0;
+  z-index: 0;
+  width: 22%;
+  height: calc(100% - 10px);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 72% 50%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.2) 36%, transparent 62%),
+    linear-gradient(90deg, transparent, rgba(117, 88, 255, 0.22), rgba(84, 185, 216, 0.16), transparent);
+  filter: blur(0.2px);
+  opacity: 0;
+  transform: translate3d(-150%, -50%, 0);
+  will-change: transform, opacity;
+}
+
+.hero-section.is-active .hero-data-strip::before {
+  animation: heroFlowTrack var(--hero-flow-duration) ease-in-out infinite;
+}
+
+.hero-section.is-active .hero-data-strip::after {
+  animation: heroFlowPacket var(--hero-flow-duration) cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+.hero-data-strip span,
+.hero-data-strip i {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-data-strip span {
+  will-change: color, text-shadow, transform;
+}
+
+.hero-section.is-active .hero-data-strip span {
+  animation: heroStepGlow var(--hero-flow-duration) ease-in-out infinite;
+}
+
+.hero-section.is-active .hero-data-strip span:nth-of-type(2) {
+  animation-delay: 720ms;
+}
+
+.hero-section.is-active .hero-data-strip span:nth-of-type(3) {
+  animation-delay: 1440ms;
+}
+
+.hero-section.is-active .hero-data-strip span:nth-of-type(4) {
+  animation-delay: 2160ms;
+}
+
+.hero-section.is-active .hero-data-strip span:nth-of-type(5) {
+  animation-delay: 2880ms;
+}
+
 .hero-data-strip i {
   display: block;
   width: 3px;
   height: 3px;
   border-radius: 50%;
   background: rgba(38, 36, 52, 0.26);
+  will-change: background, box-shadow, transform;
+}
+
+.hero-section.is-active .hero-data-strip i {
+  animation: heroDotRelay var(--hero-flow-duration) ease-in-out infinite;
+}
+
+.hero-section.is-active .hero-data-strip i:nth-of-type(1) {
+  animation-delay: 360ms;
+}
+
+.hero-section.is-active .hero-data-strip i:nth-of-type(2) {
+  animation-delay: 1080ms;
+}
+
+.hero-section.is-active .hero-data-strip i:nth-of-type(3) {
+  animation-delay: 1800ms;
+}
+
+.hero-section.is-active .hero-data-strip i:nth-of-type(4) {
+  animation-delay: 2520ms;
 }
 
 h1,
@@ -2280,6 +2413,32 @@ h3 {
   object-fit: cover;
 }
 
+.company-logo-badge {
+  position: absolute;
+  top: 20px;
+  left: 22px;
+  z-index: 2;
+  display: grid;
+  width: 190px;
+  height: 56px;
+  place-items: center;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  border-radius: 16px;
+  background: rgba(248, 250, 255, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 16px 36px rgba(18, 28, 48, 0.14);
+  backdrop-filter: blur(16px) saturate(1.1);
+}
+
+.company-logo-badge img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
 .company-photo-card::before {
   position: absolute;
   inset: 0;
@@ -2515,10 +2674,18 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 18px;
+  align-items: center;
   justify-content: center;
   margin-top: 28px;
   color: rgba(62, 60, 78, 0.7);
   font-size: 14px;
+}
+
+.contact-company-meta img {
+  width: 128px;
+  height: 28px;
+  object-fit: contain;
+  opacity: 0.82;
 }
 
 .contact-company-meta span + span::before {
@@ -2766,6 +2933,70 @@ h3 {
   100% {
     opacity: 0;
     transform: skewX(-11deg) translateX(48vw);
+  }
+}
+
+@keyframes heroFlowTrack {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scaleX(0.58);
+  }
+
+  42% {
+    opacity: 0.5;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes heroFlowPacket {
+  0% {
+    opacity: 0;
+    transform: translate3d(-150%, -50%, 0);
+  }
+
+  12%,
+  72% {
+    opacity: 0.86;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(560%, -50%, 0);
+  }
+}
+
+@keyframes heroStepGlow {
+  0%,
+  18%,
+  100% {
+    color: rgba(38, 36, 52, 0.58);
+    text-shadow: none;
+    transform: translateY(0);
+  }
+
+  7% {
+    color: rgba(31, 32, 42, 0.9);
+    text-shadow: 0 8px 24px rgba(117, 88, 255, 0.18);
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes heroDotRelay {
+  0%,
+  18%,
+  100% {
+    background: rgba(38, 36, 52, 0.26);
+    box-shadow: none;
+    transform: scale(1);
+  }
+
+  7% {
+    background: rgba(117, 88, 255, 0.86);
+    box-shadow:
+      0 0 0 4px rgba(117, 88, 255, 0.1),
+      0 0 16px rgba(117, 88, 255, 0.35);
+    transform: scale(1.22);
   }
 }
 
@@ -3121,6 +3352,13 @@ h3 {
     font-size: clamp(30px, 9.3vw, 52px);
   }
 
+  .hero-title-product {
+    display: block;
+    margin-top: 6px;
+    margin-left: 0;
+    font-size: clamp(30px, 9.3vw, 52px);
+  }
+
   .hero-actions {
     align-items: stretch;
   }
@@ -3133,6 +3371,13 @@ h3 {
     left: 22px;
     right: 22px;
     justify-content: center;
+  }
+
+  .company-logo-badge {
+    top: 16px;
+    left: 16px;
+    width: 158px;
+    height: 48px;
   }
 
   .solution-stage,
@@ -3274,7 +3519,14 @@ h3 {
 
   .brand-mark {
     width: 46px;
+    min-width: 46px;
     height: 46px;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .brand-wordmark {
+    display: none;
   }
 
   .brand-symbol,
