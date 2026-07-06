@@ -7,16 +7,7 @@ import LiquidGlassButton from './components/LiquidGlassButton.vue';
 
 gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin);
 
-type SectionKey =
-  | 'hero'
-  | 'pain'
-  | 'solution'
-  | 'bid'
-  | 'tender'
-  | 'value'
-  | 'security'
-  | 'trust'
-  | 'contact';
+type SectionKey = 'hero' | 'pain' | 'solution' | 'bid' | 'tender' | 'value' | 'security' | 'trust' | 'contact';
 
 type ModalKind = 'demo' | 'contact' | 'feedback';
 
@@ -418,15 +409,19 @@ function addCountTextTween(
   };
 
   render();
-  timeline.to(progressState, {
-    value: 1,
-    duration,
-    ease: 'power2.out',
-    onUpdate: render,
-    onComplete: () => {
-      element.textContent = finalText;
-    }
-  }, position);
+  timeline.to(
+    progressState,
+    {
+      value: 1,
+      duration,
+      ease: 'power2.out',
+      onUpdate: render,
+      onComplete: () => {
+        element.textContent = finalText;
+      }
+    },
+    position
+  );
 }
 
 function setupStoryCanvas() {
@@ -471,9 +466,9 @@ function setupStoryCanvas() {
     const gridY = -storyProgress * 210;
 
     shell.style.setProperty('--story-progress', storyProgress.toFixed(3));
-    shell.style.setProperty('--story-depth-opacity', (0.34 + storyProgress * 0.18).toFixed(3));
-    shell.style.setProperty('--story-paper-opacity', (0.18 + storyProgress * 0.44).toFixed(3));
-    shell.style.setProperty('--story-thread-opacity', (0.1 + storyProgress * 0.36).toFixed(3));
+    shell.style.setProperty('--story-depth-opacity', (storyProgress * 0.48).toFixed(3));
+    shell.style.setProperty('--story-paper-opacity', (storyProgress * 0.52).toFixed(3));
+    shell.style.setProperty('--story-thread-opacity', (storyProgress * 0.42).toFixed(3));
     shell.style.setProperty(
       '--story-surface-transform',
       `translate3d(${surfaceX.toFixed(2)}vw, ${surfaceY.toFixed(2)}vh, 0) rotate(${(storyProgress * 8 - 2).toFixed(2)}deg) scale(${(1 + storyProgress * 0.045).toFixed(3)})`
@@ -482,8 +477,14 @@ function setupStoryCanvas() {
       '--story-sheen-transform',
       `translate3d(${sheenX.toFixed(2)}vw, ${sheenY.toFixed(2)}vh, 0) rotate(${(-4 - storyProgress * 3).toFixed(2)}deg)`
     );
-    shell.style.setProperty('--story-paper-transform', `translate3d(${(-storyProgress * 7).toFixed(2)}vw, ${paperY.toFixed(1)}px, 0) rotate(${(storyProgress * 2.5).toFixed(2)}deg)`);
-    shell.style.setProperty('--story-thread-transform', `translate3d(${(storyProgress * 5).toFixed(2)}vw, ${(-storyProgress * 260).toFixed(1)}px, 0)`);
+    shell.style.setProperty(
+      '--story-paper-transform',
+      `translate3d(${(-storyProgress * 7).toFixed(2)}vw, ${paperY.toFixed(1)}px, 0) rotate(${(storyProgress * 2.5).toFixed(2)}deg)`
+    );
+    shell.style.setProperty(
+      '--story-thread-transform',
+      `translate3d(${(storyProgress * 5).toFixed(2)}vw, ${(-storyProgress * 260).toFixed(1)}px, 0)`
+    );
     shell.style.setProperty('--story-grid-transform', `translate3d(0, ${gridY.toFixed(1)}px, 0)`);
     shell.style.setProperty('--hero-blend-opacity', String(Math.min(Math.max(rawProgress * 2.8, 0), 1).toFixed(3)));
   };
@@ -575,26 +576,38 @@ function setupHeroIntro(restoreCallbacks: Array<() => void>) {
     timeline.to(eyebrow, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.46 }, 0);
   }
 
-  timeline.to(titleLines, { autoAlpha: 1, yPercent: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.78, stagger: 0.12 }, 0.12);
+  timeline.to(
+    titleLines,
+    { autoAlpha: 1, yPercent: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.78, stagger: 0.12 },
+    0.12
+  );
 
   if (productName && finalProductName) {
-    timeline.to(productName, {
-      duration: 0.76,
-      scrambleText: {
-        text: finalProductName,
-        chars: '01TENDERBIDFLOWAI',
-        revealDelay: 0.1
-      }
-    }, 0.34);
+    timeline.to(
+      productName,
+      {
+        duration: 0.76,
+        scrambleText: {
+          text: finalProductName,
+          chars: '01TENDERBIDFLOWAI',
+          revealDelay: 0.1
+        }
+      },
+      0.34
+    );
   }
 
   timeline
-    .to(kicker, {
-      autoAlpha: 1,
-      yPercent: 0,
-      clipPath: 'inset(0% 0% 0% 0%)',
-      duration: 0.72
-    }, 0.38)
+    .to(
+      kicker,
+      {
+        autoAlpha: 1,
+        yPercent: 0,
+        clipPath: 'inset(0% 0% 0% 0%)',
+        duration: 0.72
+      },
+      0.38
+    )
     .to(bodyCopy, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.72)
     .to(actionTargets, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.54, stagger: 0.08 }, 0.92)
     .to(dataItems, { autoAlpha: 1, y: 0, scale: 1, duration: 0.36, stagger: 0.055 }, 1.08)
@@ -642,7 +655,11 @@ function setupSolutionFlow(shell: HTMLElement) {
     .to(copyItems, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.055, ease: 'power3.out' }, 0)
     .to(centerNode, { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.64, ease: 'expo.out' }, 0.12)
     .to(lines, { autoAlpha: 1, scaleX: 1, duration: 0.5, stagger: 0.08, ease: 'power2.inOut' }, 0.38)
-    .to(sideNodes, { autoAlpha: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.62, stagger: 0.08, ease: 'expo.out' }, 0.48)
+    .to(
+      sideNodes,
+      { autoAlpha: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.62, stagger: 0.08, ease: 'expo.out' },
+      0.48
+    )
     .to(nodes, { '--node-glow': 1, duration: 0.32, stagger: 0.06, ease: 'power1.out' }, 0.82);
 }
 
@@ -700,12 +717,28 @@ function setupBidWorkbenchFlow(shell: HTMLElement, restoreCallbacks: Array<() =>
     .to(copyItems, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.055 }, 0)
     .to(showcase, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0.08)
     .to(railItems, { autoAlpha: 1, x: 0, duration: 0.36, stagger: 0.055 }, 0.26)
-    .to(sheets, { autoAlpha: 1, y: 0, rotation: (index: number) => (index === 0 ? 0 : 3), scale: 1, duration: 0.54, stagger: 0.06, ease: 'expo.out' }, 0.34)
+    .to(
+      sheets,
+      {
+        autoAlpha: 1,
+        y: 0,
+        rotation: (index: number) => (index === 0 ? 0 : 3),
+        scale: 1,
+        duration: 0.54,
+        stagger: 0.06,
+        ease: 'expo.out'
+      },
+      0.34
+    )
     .to(scanBeam, { autoAlpha: 1, duration: 0.12 }, 0.56)
     .to(scanBeam, { yPercent: 230, duration: 0.56, ease: 'power1.inOut' }, 0.58)
     .to(scanBeam, { autoAlpha: 0, duration: 0.18 }, 1.02)
     .to(docLines, { scaleX: 1, duration: 0.28, stagger: 0.06, ease: 'power2.out' }, 0.76)
-    .to(reviewPanel, { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.42, ease: 'back.out(1.2)' }, 0.92);
+    .to(
+      reviewPanel,
+      { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.42, ease: 'back.out(1.2)' },
+      0.92
+    );
 
   addCountTextTween(timeline, reviewScore, finalScore, 0.96, 0.38);
 
@@ -758,7 +791,11 @@ function setupTenderReviewFlow(shell: HTMLElement) {
     .to(showcase, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0.08)
     .to(pipelineLine, { scaleY: 1, duration: 0.56, ease: 'power2.inOut' }, 0.28)
     .to(pipelineItems, { autoAlpha: 1, x: 0, duration: 0.34, stagger: 0.055 }, 0.36)
-    .to(reviewRows, { autoAlpha: 1, x: 0, scale: 1, filter: 'blur(0px)', duration: 0.44, stagger: 0.08, ease: 'expo.out' }, 0.58)
+    .to(
+      reviewRows,
+      { autoAlpha: 1, x: 0, scale: 1, filter: 'blur(0px)', duration: 0.44, stagger: 0.08, ease: 'expo.out' },
+      0.58
+    )
     .to(orbit, { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration: 0.54, ease: 'back.out(1.18)' }, 0.76)
     .to(orbitLabels, { autoAlpha: 1, scale: 1, duration: 0.26, stagger: 0.055 }, 0.92)
     .to(modules, { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.42, stagger: 0.045 }, 1.06);
@@ -815,19 +852,20 @@ function setupEvidenceMotion(shell: HTMLElement, restoreCallbacks: Array<() => v
     gsap.set(device, { autoAlpha: 0, scale: 0.88, rotateY: -12, filter: 'blur(10px)' });
     gsap.set(cards, { autoAlpha: 0, x: 34, '--shield-fill': 0 });
 
-    gsap.timeline({
-      defaults: { ease: 'power3.out' },
-      scrollTrigger: {
-        id: 'security-shield-layer',
-        trigger: securitySection,
-        scroller: shell,
-        start: 'top 70%',
-        end: 'center 40%',
-        toggleActions: 'play none none reverse',
-        invalidateOnRefresh: true,
-        refreshPriority: 6
-      }
-    })
+    gsap
+      .timeline({
+        defaults: { ease: 'power3.out' },
+        scrollTrigger: {
+          id: 'security-shield-layer',
+          trigger: securitySection,
+          scroller: shell,
+          start: 'top 70%',
+          end: 'center 40%',
+          toggleActions: 'play none none reverse',
+          invalidateOnRefresh: true,
+          refreshPriority: 6
+        }
+      })
       .to(copyItems, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.46, stagger: 0.055 }, 0)
       .to(device, { autoAlpha: 1, scale: 1, rotateY: 0, filter: 'blur(0px)', duration: 0.6, ease: 'expo.out' }, 0.16)
       .to(cards, { autoAlpha: 1, x: 0, '--shield-fill': 1, duration: 0.42, stagger: 0.075 }, 0.38);
@@ -879,19 +917,20 @@ function setupEvidenceMotion(shell: HTMLElement, restoreCallbacks: Array<() => v
     gsap.set(actions, { autoAlpha: 0, x: (index: number) => [-34, 34][index] ?? 0, scale: 0.98 });
     gsap.set(metaItems, { autoAlpha: 0, y: 10 });
 
-    gsap.timeline({
-      defaults: { ease: 'power3.out' },
-      scrollTrigger: {
-        id: 'contact-converge',
-        trigger: contactSection,
-        scroller: shell,
-        start: 'top 76%',
-        end: 'center 48%',
-        toggleActions: 'play none none reverse',
-        invalidateOnRefresh: true,
-        refreshPriority: 8
-      }
-    })
+    gsap
+      .timeline({
+        defaults: { ease: 'power3.out' },
+        scrollTrigger: {
+          id: 'contact-converge',
+          trigger: contactSection,
+          scroller: shell,
+          start: 'top 76%',
+          end: 'center 48%',
+          toggleActions: 'play none none reverse',
+          invalidateOnRefresh: true,
+          refreshPriority: 8
+        }
+      })
       .to(panel, { autoAlpha: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 0.58, ease: 'expo.out' }, 0)
       .to(copyItems, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.055 }, 0.14)
       .to(actions, { autoAlpha: 1, x: 0, scale: 1, duration: 0.4, stagger: 0.07 }, 0.36)
@@ -1000,8 +1039,7 @@ function setupPainScrollytelling() {
     });
     gsap.set(cardContent, {
       autoAlpha: 0.12,
-      y: 14,
-      filter: 'blur(6px)'
+      y: 14
     });
 
     const timeline = gsap.timeline({
@@ -1013,7 +1051,7 @@ function setupPainScrollytelling() {
         start: 'top top',
         end: () => `+=${Math.max(shell.clientHeight * 1.65, 1160)}`,
         pin: true,
-        scrub: 0.9,
+        scrub: 0.3,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         refreshPriority: 1,
@@ -1029,7 +1067,11 @@ function setupPainScrollytelling() {
     timeline
       .to(copyItems, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.18, stagger: 0.035 }, 0)
       .to(cards, { autoAlpha: 1, duration: 0.08, stagger: 0.018 }, 0)
-      .to(cards, { rotationX: -22, y: (index: number) => -22 + index * 15, z: -46, scale: 0.94, duration: 0.14, stagger: 0.02 }, 0.04);
+      .to(
+        cards,
+        { rotationX: -22, y: (index: number) => -22 + index * 15, z: -46, scale: 0.94, duration: 0.14, stagger: 0.02 },
+        0.04
+      );
 
     cards.forEach((card, index) => {
       const layout = cardLayout[index] ?? cardLayout[cardLayout.length - 1];
@@ -1051,7 +1093,7 @@ function setupPainScrollytelling() {
           },
           start
         )
-        .to(content, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.16, stagger: 0.018 }, start + 0.075);
+        .to(content, { autoAlpha: 1, y: 0, duration: 0.16, stagger: 0.018 }, start + 0.075);
     });
 
     timeline.to(cards, { y: (index: number) => (cardLayout[index] ?? cardLayout[0]).y + 12, duration: 0.12 }, 0.83);
@@ -1131,9 +1173,7 @@ onUnmounted(() => {
       </nav>
 
       <div class="nav-actions">
-        <button class="platform-link" type="button" @click="openUrlOrModal(feedbackUrl, 'feedback')">
-          客户反馈
-        </button>
+        <button class="platform-link" type="button" @click="openUrlOrModal(feedbackUrl, 'feedback')">客户反馈</button>
         <LiquidGlassButton label="预约演示" size="nav" @click="openUrlOrModal(demoUrl, 'demo')" />
       </div>
     </header>
@@ -1177,9 +1217,7 @@ onUnmounted(() => {
           </span>
           <span class="hero-title-kicker">招投标全流程 AI 作业平台</span>
         </h1>
-        <p class="hero-description">
-          连接招标策划、投标响应、智能评审与风险审查，让标书更快生成，让风险更早暴露。
-        </p>
+        <p class="hero-description">连接招标策划、投标响应、智能评审与风险审查，让标书更快生成，让风险更早暴露。</p>
         <p class="hero-proof">面向招采端、投标端和企业级安全部署的 AI 作业系统。</p>
         <div class="hero-actions">
           <LiquidGlassButton label="预约演示" size="hero" @click="openUrlOrModal(demoUrl, 'demo')" />
@@ -1242,7 +1280,12 @@ onUnmounted(() => {
       </div>
 
       <div class="solution-stage reveal-item">
-        <article v-for="(node, index) in solutionNodes" :key="node.title" class="solution-node" :class="`node-${index}`">
+        <article
+          v-for="(node, index) in solutionNodes"
+          :key="node.title"
+          class="solution-node"
+          :class="`node-${index}`"
+        >
           <span>{{ node.label }}</span>
           <h3>{{ node.title }}</h3>
           <p>{{ node.description }}</p>
@@ -1525,7 +1568,11 @@ onUnmounted(() => {
               </label>
               <label class="modal-field-wide">
                 <span>反馈内容</span>
-                <textarea v-model="feedbackForm.content" rows="5" placeholder="请描述你遇到的问题、建议或希望补充的业务场景。" />
+                <textarea
+                  v-model="feedbackForm.content"
+                  rows="5"
+                  placeholder="请描述你遇到的问题、建议或希望补充的业务场景。"
+                />
               </label>
             </template>
 
@@ -1557,7 +1604,11 @@ onUnmounted(() => {
               </label>
               <label class="modal-field-wide">
                 <span>希望沟通的场景</span>
-                <textarea v-model="demoForm.scene" rows="4" placeholder="例如：集团多子公司投标协同、评标合规审查、私有化部署等。" />
+                <textarea
+                  v-model="demoForm.scene"
+                  rows="4"
+                  placeholder="例如：集团多子公司投标协同、评标合规审查、私有化部署等。"
+                />
               </label>
             </template>
 
